@@ -79,47 +79,80 @@ public class Main {
     }
 
     public static Collection<String> topSort(Map<String, List<String>> graph) {
-        Map<String, Integer> dependenciesCount = getDependenciesCount(graph);
-
         List<String> sorted = new ArrayList<>();
 
-        while (!graph.isEmpty()){
-            String graphWithoutDependencies = graph.keySet()
-                    .stream()
-                    .filter(k -> dependenciesCount.get(k) == 0)
-                    .findFirst()
-                    .orElse(null);
+        Set<String> visited = new HashSet<>();
 
-            if(graphWithoutDependencies == null){
-                break;
-            }
+        Set<String> detectCycles = new HashSet<>();
 
-            for (String child : graph.get(graphWithoutDependencies)) {
-                dependenciesCount.put(child, dependenciesCount.get(child) - 1);
-            }
-
-            sorted.add(graphWithoutDependencies);
-            graph.remove(graphWithoutDependencies);
-
+        for (Map.Entry<String, List<String>> node : graph.entrySet()) {
+            dfs1(node.getKey(), visited, graph, sorted, detectCycles);
         }
 
-        if(!graph.isEmpty()){
-            throw new IllegalArgumentException();
-        }
+        Collections.reverse(sorted);
 
         return sorted;
     }
 
-    private static Map<String, Integer> getDependenciesCount(Map<String, List<String>> graph) {
-        Map<String, Integer> dependenciesCount = new LinkedHashMap<>();
-
-        for (Map.Entry<String, List<String>> node : graph.entrySet()) {
-            dependenciesCount.putIfAbsent(node.getKey(), 0);
-            for (String child : node.getValue()) {
-                dependenciesCount.putIfAbsent(child,0);
-                dependenciesCount.put(child, dependenciesCount.get(child) + 1);
-            }
+    private static void dfs1(String key, Set<String> visited, Map<String, List<String>> graph, List<String> sorted, Set<String> detectCycles) {
+        if(detectCycles.contains(key)){
+            throw new IllegalArgumentException();
         }
-        return dependenciesCount;
+
+        if(!visited.contains(key)){
+            visited.add(key);
+            detectCycles.add(key);
+            for (String child : graph.get(key)) {
+                dfs1(child, visited, graph, sorted, detectCycles);
+            }
+
+            detectCycles.remove(key);
+            sorted.add(key);
+        }
     }
+
+//    public static Collection<String> topSort(Map<String, List<String>> graph) {
+//        Map<String, Integer> dependenciesCount = getDependenciesCount(graph);
+//
+//        List<String> sorted = new ArrayList<>();
+//
+//        while (!graph.isEmpty()){
+//            String graphWithoutDependencies = graph.keySet()
+//                    .stream()
+//                    .filter(k -> dependenciesCount.get(k) == 0)
+//                    .findFirst()
+//                    .orElse(null);
+//
+//            if(graphWithoutDependencies == null){
+//                break;
+//            }
+//
+//            for (String child : graph.get(graphWithoutDependencies)) {
+//                dependenciesCount.put(child, dependenciesCount.get(child) - 1);
+//            }
+//
+//            sorted.add(graphWithoutDependencies);
+//            graph.remove(graphWithoutDependencies);
+//
+//        }
+//
+//        if(!graph.isEmpty()){
+//            throw new IllegalArgumentException();
+//        }
+//
+//        return sorted;
+//    }
+//
+//    private static Map<String, Integer> getDependenciesCount(Map<String, List<String>> graph) {
+//        Map<String, Integer> dependenciesCount = new LinkedHashMap<>();
+//
+//        for (Map.Entry<String, List<String>> node : graph.entrySet()) {
+//            dependenciesCount.putIfAbsent(node.getKey(), 0);
+//            for (String child : node.getValue()) {
+//                dependenciesCount.putIfAbsent(child,0);
+//                dependenciesCount.put(child, dependenciesCount.get(child) + 1);
+//            }
+//        }
+//        return dependenciesCount;
+//    }
 }
